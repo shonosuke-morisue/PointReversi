@@ -19,6 +19,7 @@ public class CellController : MonoBehaviour
     void Awake()
     {
         cellDefaultColor = GetComponent<Image>().color;
+        SetPoint(0); // PointTextを初期状態で非表示にする
     }
 
     public void SetPosition(int x, int y)
