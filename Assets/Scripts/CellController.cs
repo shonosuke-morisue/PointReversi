@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,7 +8,7 @@ public class CellController : MonoBehaviour
     public enum CellState { Empty, Black, White }
 
     [SerializeField] private Image diskImage;
-    [SerializeField] private Text pointText; // 石の点数表示テキスト
+    [SerializeField] private TMP_Text pointText; // 石の点数表示テキスト
 
     private int x, y;
     private CellState state = CellState.Empty;
