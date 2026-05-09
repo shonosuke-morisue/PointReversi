@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +10,9 @@ public class CellController : MonoBehaviour
 
     private int x, y;
     private CellState state = CellState.Empty;
+
+    // クリック時に通知するイベント（購読者がGameManagerへの依存を持つ）
+    public event Action<int, int> OnClicked;
 
     // 座標を設定（BoardManagerから呼ばれる）
     public void SetPosition(int x, int y)
@@ -46,18 +50,12 @@ public class CellController : MonoBehaviour
         return state;
     }
 
-    public GameManager gameManager; // Inspectorで設定
-
     public void OnClick()
     {
         Debug.Log($"OnClick() 呼び出し: ({x},{y})");
-        if (gameManager == null)
-        {
-            gameManager = Object.FindFirstObjectByType<GameManager>();
-        }
-
-        gameManager.OnCellClicked(x, y);
+        OnClicked?.Invoke(x, y);
     }
+
     public void SetHighlight(bool isHighlighted)
     {
         if (state != CellState.Empty)
