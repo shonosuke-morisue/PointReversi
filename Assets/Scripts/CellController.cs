@@ -47,13 +47,15 @@ public class CellController : MonoBehaviour
         {
             case CellState.Empty:
                 diskImage.color = new Color(0, 0, 0, 0); // 透明
-                SetPoint(0);
+                SetPoint(0); // 点数を非表示
                 break;
             case CellState.Black:
                 diskImage.color = Color.black;
+                if (pointText != null) pointText.color = Color.white; // 黒石→白文字
                 break;
             case CellState.White:
                 diskImage.color = Color.white;
+                if (pointText != null) pointText.color = Color.black; // 白石→黒文字
                 break;
         }
     }
@@ -64,6 +66,7 @@ public class CellController : MonoBehaviour
     public void SetPoint(int point)
     {
         if (pointText == null) return;
+        pointText.gameObject.SetActive(point > 0);
         pointText.text = point > 0 ? point.ToString() : "";
     }
 
