@@ -10,9 +10,16 @@ public class CellController : MonoBehaviour
 
     private int x, y;
     private CellState state = CellState.Empty;
+    private Color cellDefaultColor;
 
     // クリック時に通知するイベント（購読者がGameManagerへの依存を持つ）
     public event Action<int, int> OnClicked;
+
+    void Awake()
+    {
+        // セル背景のデフォルト色を記憶しておく
+        cellDefaultColor = GetComponent<Image>().color;
+    }
 
     // 座標を設定（BoardManagerから呼ばれる）
     public void SetPosition(int x, int y)
@@ -44,8 +51,6 @@ public class CellController : MonoBehaviour
                 diskImage.color = Color.white;
                 break;
         }
-
-        Debug.Log($"SetState ({x},{y}) newState={newState} | color={diskImage.color} | enabled={diskImage.enabled} | active={diskImage.gameObject.activeInHierarchy} | sprite={diskImage.sprite}");
     }
 
     public CellState GetState()
@@ -55,25 +60,17 @@ public class CellController : MonoBehaviour
 
     public void OnClick()
     {
-        Debug.Log($"OnClick() 呼び出し: ({x},{y})");
         OnClicked?.Invoke(x, y);
     }
 
     public void SetHighlight(bool isHighlighted)
     {
-        if (state != CellState.Empty)
-        {
-            GetComponent<Image>().color = Color.white;
-            return;
-        }
+        // 石があるマスはハイライト操作不要
+        // （diskImageを誤って上書きしないよう早期リターン）
+        if (state != CellState.Empty) return;
 
-        if (isHighlighted)
-        {
-            GetComponent<Image>().color = new Color(0.8f, 0.8f, 1f, 1f);
-        }
-        else
-        {
-            GetComponent<Image>().color = Color.white;
-        }
+        GetComponent<Image>().color = isHighlighted
+            ? new Color(0.8f, 0.8f, 1f, 1f)
+            : cellDefaultColor;
     }
 }

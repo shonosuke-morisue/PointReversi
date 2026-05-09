@@ -103,11 +103,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     void PlaceStone(int x, int y, CellController.CellState color)
     {
-        var cellObj = board.GetCell(x, y);
-        var cell = cellObj != null ? cellObj.GetComponent<CellController>() : null;
-        Debug.Log($"PlaceStone ({x},{y}) color={color} cellObj={cellObj} cell={cell}");
-        if (cell == null) { Debug.LogError($"CellController が null です ({x},{y})"); return; }
-        cell.SetState(color);
+        board.GetCell(x, y).GetComponent<CellController>().SetState(color);
         board.SetFieldColor(x, y, (int)color);
         board.SetFieldPoint(x, y, 1);
 
