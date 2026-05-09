@@ -52,10 +52,12 @@ public class CellController : MonoBehaviour
             case CellState.Black:
                 diskImage.color = Color.black;
                 if (pointText != null) pointText.color = Color.white; // 黒石→白文字
+                SetPoint(0); // デフォルト非表示（ポイントモード時はGameManagerが上書き）
                 break;
             case CellState.White:
                 diskImage.color = Color.white;
                 if (pointText != null) pointText.color = Color.black; // 白石→黒文字
+                SetPoint(0); // デフォルト非表示（ポイントモード時はGameManagerが上書き）
                 break;
         }
     }
