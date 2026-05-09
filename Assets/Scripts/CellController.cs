@@ -30,7 +30,7 @@ public class CellController : MonoBehaviour
     public void SetState(CellState newState)
     {
         state = newState;
-        Debug.Log($"SetState ({x},{y}) newState={newState} diskImage={diskImage}");
+        if (diskImage == null) { Debug.LogError($"diskImage が null です ({x},{y})"); return; }
 
         switch (state)
         {
@@ -44,6 +44,8 @@ public class CellController : MonoBehaviour
                 diskImage.color = Color.white;
                 break;
         }
+
+        Debug.Log($"SetState ({x},{y}) newState={newState} | color={diskImage.color} | enabled={diskImage.enabled} | active={diskImage.gameObject.activeInHierarchy} | sprite={diskImage.sprite}");
     }
 
     public CellState GetState()
