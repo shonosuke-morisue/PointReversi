@@ -51,6 +51,9 @@ public class CellController : MonoBehaviour
                 diskImage.color = Color.white;
                 break;
         }
+
+        var cellBg = GetComponent<Image>();
+        Debug.Log($"SetState ({x},{y}) state={state} | diskImage.gameObject={diskImage.gameObject.name} | diskImage==cellBg:{diskImage == cellBg} | diskImage.color={diskImage.color} | diskImage.rectSize={diskImage.rectTransform.rect.size}");
     }
 
     public CellState GetState()
