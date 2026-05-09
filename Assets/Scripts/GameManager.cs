@@ -103,9 +103,14 @@ public class GameManager : MonoBehaviour
     /// </summary>
     void PlaceStone(int x, int y, CellController.CellState color)
     {
-        board.GetCell(x, y).GetComponent<CellController>().SetState(color);
+        var cell = board.GetCell(x, y).GetComponent<CellController>();
+        cell.SetState(color);
         board.SetFieldColor(x, y, (int)color);
         board.SetFieldPoint(x, y, 1);
+
+        // ポイントモードのみ石に点数を表示する
+        if (gameMode == GameSettings.GameMode.Point)
+            cell.SetPoint(1);
 
         if (color == CellController.CellState.Black) board.AddBlackPoint(1);
         else board.AddWhitePoint(1);
@@ -164,7 +169,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     void FlipSingleStone(int x, int y, CellController.CellState player)
     {
-        board.GetCell(x, y).GetComponent<CellController>().SetState(player);
+        var cell = board.GetCell(x, y).GetComponent<CellController>();
+        cell.SetState(player);
         board.SetFieldColor(x, y, (int)player);
 
         if (gameMode == GameSettings.GameMode.Point)
@@ -172,6 +178,7 @@ public class GameManager : MonoBehaviour
             // ポイントモード：石の価値はひっくり返された回数分増加する
             int stonePoint = board.GetFieldPoint(x, y) + 1;
             board.SetFieldPoint(x, y, stonePoint);
+            cell.SetPoint(stonePoint); // 石に点数を表示
 
             if (player == CellController.CellState.Black)
             {

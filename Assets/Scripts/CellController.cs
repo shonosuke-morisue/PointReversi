@@ -7,21 +7,19 @@ public class CellController : MonoBehaviour
     public enum CellState { Empty, Black, White }
 
     [SerializeField] private Image diskImage;
+    [SerializeField] private Text pointText; // 石の点数表示テキスト
 
     private int x, y;
     private CellState state = CellState.Empty;
     private Color cellDefaultColor;
 
-    // クリック時に通知するイベント（購読者がGameManagerへの依存を持つ）
     public event Action<int, int> OnClicked;
 
     void Awake()
     {
-        // セル背景のデフォルト色を記憶しておく
         cellDefaultColor = GetComponent<Image>().color;
     }
 
-    // 座標を設定（BoardManagerから呼ばれる）
     public void SetPosition(int x, int y)
     {
         this.x = x;
@@ -33,16 +31,22 @@ public class CellController : MonoBehaviour
         return new Vector2Int(x, y);
     }
 
-    // 状態を設定し、見た目を更新
+    /// <summary>
+    /// 石の色と状態を更新する。石を置いた際にハイライトも自動解除する。
+    /// </summary>
     public void SetState(CellState newState)
     {
         state = newState;
         if (diskImage == null) { Debug.LogError($"diskImage が null です ({x},{y})"); return; }
 
+        // 石を置く・取り除く際にセル背景をデフォルト色に戻す（ハイライト解除）
+        GetComponent<Image>().color = cellDefaultColor;
+
         switch (state)
         {
             case CellState.Empty:
                 diskImage.color = new Color(0, 0, 0, 0); // 透明
+                SetPoint(0);
                 break;
             case CellState.Black:
                 diskImage.color = Color.black;
@@ -51,9 +55,15 @@ public class CellController : MonoBehaviour
                 diskImage.color = Color.white;
                 break;
         }
+    }
 
-        var cellBg = GetComponent<Image>();
-        Debug.Log($"SetState ({x},{y}) state={state} | diskImage.gameObject={diskImage.gameObject.name} | diskImage==cellBg:{diskImage == cellBg} | diskImage.color={diskImage.color} | diskImage.rectSize={diskImage.rectTransform.rect.size}");
+    /// <summary>
+    /// 石の点数を表示する。0以下の場合は非表示にする。
+    /// </summary>
+    public void SetPoint(int point)
+    {
+        if (pointText == null) return;
+        pointText.text = point > 0 ? point.ToString() : "";
     }
 
     public CellState GetState()
@@ -68,8 +78,7 @@ public class CellController : MonoBehaviour
 
     public void SetHighlight(bool isHighlighted)
     {
-        // 石があるマスはハイライト操作不要
-        // （diskImageを誤って上書きしないよう早期リターン）
+        // 石があるマスはハイライト対象外
         if (state != CellState.Empty) return;
 
         GetComponent<Image>().color = isHighlighted
