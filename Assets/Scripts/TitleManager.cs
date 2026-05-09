@@ -20,7 +20,7 @@ public class TitleManager : MonoBehaviour
     [SerializeField] private Button startButton;
 
     [Header("遷移先シーン名")]
-    [SerializeField] private string gameSceneName = "SampleScene";
+    [SerializeField] private string gameSceneName = "GameScene";
 
     void Start()
     {

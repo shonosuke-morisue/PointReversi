@@ -493,7 +493,7 @@ MonoBehaviour:
   toggleNormalDiff: {fileID: 1526452751}
   toggleHard: {fileID: 1184744720}
   startButton: {fileID: 874416520}
-  gameSceneName: SampleScene
+  gameSceneName: GameScene
 --- !u!1 &462707608
 GameObject:
   m_ObjectHideFlags: 0
