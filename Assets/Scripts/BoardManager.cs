@@ -1,8 +1,12 @@
+using UnityEngine;
+
 /// <summary>
-/// ボードの状態（フィールド配列・ターン・ポイント）を管理するクラス
+/// ボードの状態（フィールド配列・ターン・ポイント・セルオブジェクト）を管理するクラス
 /// </summary>
 public class BoardManager
 {
+    // 各マスのセルGameObject（0始まり座標）
+    private GameObject[,] cells = new GameObject[8, 8];
     // 現在の手番プレイヤー（1:黒 2:白）
     public int TurnPlayer { get; private set; } = 1;
 
@@ -44,6 +48,69 @@ public class BoardManager
 
     // 白ポイントを減算
     public void SubtractWhitePoint(int points) { WhitePoint -= points; }
+
+    /// <summary>
+    /// セルGameObjectを登録する（BoardManager初期化時にGameManagerから呼ぶ）
+    /// </summary>
+    public void RegisterCell(int x, int y, GameObject cell)
+    {
+        cells[x, y] = cell;
+    }
+
+    /// <summary>
+    /// 指定座標のセルGameObjectを返す
+    /// </summary>
+    public GameObject GetCell(int x, int y)
+    {
+        return cells[x, y];
+    }
+
+    /// <summary>
+    /// 指定座標にplayerが石を置いたとき、1枚以上ひっくり返せるか判定する
+    /// CellState.Empty=0, Black=1, White=2 がgameFieldの整数値と対応している
+    /// </summary>
+    public bool HasReversibleDisks(int x, int y, CellController.CellState player)
+    {
+        int playerColor = (int)player;        // Black=1, White=2
+        int opponentColor = playerColor == 1 ? 2 : 1;
+
+        // 8方向の差分（dx, dy）
+        int[] dx = { -1,  0,  1, -1, 1, -1, 0, 1 };
+        int[] dy = { -1, -1, -1,  0, 0,  1, 1, 1 };
+
+        for (int d = 0; d < 8; d++)
+        {
+            int nx = x + dx[d];
+            int ny = y + dy[d];
+            bool hasOpponent = false;
+
+            while (nx >= 0 && nx < 8 && ny >= 0 && ny < 8)
+            {
+                int fieldColor = GetFieldColor(nx, ny);
+
+                if (fieldColor == opponentColor)
+                {
+                    // 相手の石が続く
+                    hasOpponent = true;
+                }
+                else if (fieldColor == playerColor && hasOpponent)
+                {
+                    // 相手の石を挟んで自分の石があればひっくり返せる
+                    return true;
+                }
+                else
+                {
+                    // 空きマスか、相手石なしで自分の石に到達 → この方向はNG
+                    break;
+                }
+
+                nx += dx[d];
+                ny += dy[d];
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// ターンを交代する
