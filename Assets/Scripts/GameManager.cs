@@ -103,9 +103,13 @@ public class GameManager : MonoBehaviour
     /// </summary>
     void PlaceStone(int x, int y, CellController.CellState color)
     {
-        board.GetCell(x, y).GetComponent<CellController>().SetState(color);
+        var cellObj = board.GetCell(x, y);
+        var cell = cellObj != null ? cellObj.GetComponent<CellController>() : null;
+        Debug.Log($"PlaceStone ({x},{y}) color={color} cellObj={cellObj} cell={cell}");
+        if (cell == null) { Debug.LogError($"CellController が null です ({x},{y})"); return; }
+        cell.SetState(color);
         board.SetFieldColor(x, y, (int)color);
-        board.SetFieldPoint(x, y, 1); // 新しく置いた石は点数1からスタート
+        board.SetFieldPoint(x, y, 1);
 
         if (color == CellController.CellState.Black) board.AddBlackPoint(1);
         else board.AddWhitePoint(1);

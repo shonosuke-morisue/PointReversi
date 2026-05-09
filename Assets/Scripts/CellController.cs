@@ -30,6 +30,7 @@ public class CellController : MonoBehaviour
     public void SetState(CellState newState)
     {
         state = newState;
+        Debug.Log($"SetState ({x},{y}) newState={newState} diskImage={diskImage}");
 
         switch (state)
         {
