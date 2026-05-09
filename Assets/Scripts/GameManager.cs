@@ -5,19 +5,19 @@ using UnityEngine;
 /// <summary>
 /// ゲーム全体を統括するクラス。
 /// ボードの初期化・石の配置・ターン管理・CPU対戦・ゲームオーバー判定を担う。
+/// タイトルシーンで選択されたゲームモード・難易度を GameSettings から読み込む。
 /// </summary>
 public class GameManager : MonoBehaviour
 {
     [Header("ボード設定")]
-    [SerializeField] private GameObject cellPrefab;   // CellControllerがアタッチされたプレハブ
-    [SerializeField] private Transform boardParent;   // セルを配置する親Transform（GridLayoutGroup推奨）
+    [SerializeField] private GameObject cellPrefab;
+    [SerializeField] private Transform boardParent;
 
     [Header("UI")]
     [SerializeField] private GameObject canvas;
 
     [Header("CPU設定")]
     [SerializeField] private bool isCpuMode = false;
-    [SerializeField] private CpuPlayer.AIDifficulty cpuDifficulty = CpuPlayer.AIDifficulty.Normal;
     [SerializeField] private CellController.CellState cpuSide = CellController.CellState.White;
 
     private BoardManager board;
@@ -26,10 +26,18 @@ public class GameManager : MonoBehaviour
     private CellController.CellState currentTurn = CellController.CellState.Black;
     private bool isGameOver = false;
 
+    // タイトルシーンから引き継いだ設定
+    private GameSettings.GameMode gameMode;
+    private CpuPlayer.AIDifficulty cpuDifficulty;
+
     void Start()
     {
+        // タイトルで選択した設定を読み込む
+        gameMode     = GameSettings.SelectedMode;
+        cpuDifficulty = GameSettings.SelectedDifficulty;
+
         board = new BoardManager();
-        ui = new UIManager(canvas);
+        ui    = new UIManager(canvas);
 
         InitializeBoard();
         PlaceInitialStones();
@@ -49,7 +57,7 @@ public class GameManager : MonoBehaviour
                 GameObject cellObj = Instantiate(cellPrefab, boardParent);
                 CellController cell = cellObj.GetComponent<CellController>();
                 cell.SetPosition(x, y);
-                cell.OnClicked += OnCellClicked;  // クリックイベントを購読
+                cell.OnClicked += OnCellClicked;
                 board.RegisterCell(x, y, cellObj);
             }
         }
@@ -67,13 +75,11 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// セルがクリックされたときの処理（CellController.OnClickedから呼ばれる）
+    /// セルがクリックされたときの処理
     /// </summary>
     public void OnCellClicked(int x, int y)
     {
         if (isGameOver) return;
-
-        // CPU番のクリックは無視する
         if (isCpuMode && currentTurn == cpuSide) return;
 
         TryPlaceStone(x, y);
@@ -99,13 +105,16 @@ public class GameManager : MonoBehaviour
     {
         board.GetCell(x, y).GetComponent<CellController>().SetState(color);
         board.SetFieldColor(x, y, (int)color);
+        board.SetFieldPoint(x, y, 1); // 新しく置いた石は点数1からスタート
 
         if (color == CellController.CellState.Black) board.AddBlackPoint(1);
         else board.AddWhitePoint(1);
     }
 
     /// <summary>
-    /// 石を置いた後、ひっくり返せる相手の石をすべて返す
+    /// 石を置いた後、ひっくり返せる相手の石をすべて返す。
+    /// ノーマルモード：石1枚＝1点の通常カウント
+    /// ポイントモード：ひっくり返すたびに石の価値が上がる
     /// </summary>
     void FlipStones(int x, int y, CellController.CellState player)
     {
@@ -131,22 +140,9 @@ public class GameManager : MonoBehaviour
                 }
                 else if (fieldColor == playerColor && toFlip.Count > 0)
                 {
-                    // 相手石を挟めたのでひっくり返す
                     foreach (var pos in toFlip)
                     {
-                        board.GetCell(pos.x, pos.y).GetComponent<CellController>().SetState(player);
-                        board.SetFieldColor(pos.x, pos.y, playerColor);
-
-                        if (player == CellController.CellState.Black)
-                        {
-                            board.AddBlackPoint(1);
-                            board.SubtractWhitePoint(1);
-                        }
-                        else
-                        {
-                            board.AddWhitePoint(1);
-                            board.SubtractBlackPoint(1);
-                        }
+                        FlipSingleStone(pos.x, pos.y, player);
                     }
                     break;
                 }
@@ -161,6 +157,47 @@ public class GameManager : MonoBehaviour
         }
 
         ui.UpdatePoints(board.BlackPoint, board.WhitePoint);
+    }
+
+    /// <summary>
+    /// 1枚の石をひっくり返す。ゲームモードに応じて点数計算を切り替える。
+    /// </summary>
+    void FlipSingleStone(int x, int y, CellController.CellState player)
+    {
+        board.GetCell(x, y).GetComponent<CellController>().SetState(player);
+        board.SetFieldColor(x, y, (int)player);
+
+        if (gameMode == GameSettings.GameMode.Point)
+        {
+            // ポイントモード：石の価値はひっくり返された回数分増加する
+            int stonePoint = board.GetFieldPoint(x, y) + 1;
+            board.SetFieldPoint(x, y, stonePoint);
+
+            if (player == CellController.CellState.Black)
+            {
+                board.AddBlackPoint(stonePoint);
+                board.SubtractWhitePoint(stonePoint - 1);
+            }
+            else
+            {
+                board.AddWhitePoint(stonePoint);
+                board.SubtractBlackPoint(stonePoint - 1);
+            }
+        }
+        else
+        {
+            // ノーマルモード：石1枚＝1点の通常カウント
+            if (player == CellController.CellState.Black)
+            {
+                board.AddBlackPoint(1);
+                board.SubtractWhitePoint(1);
+            }
+            else
+            {
+                board.AddWhitePoint(1);
+                board.SubtractBlackPoint(1);
+            }
+        }
     }
 
     /// <summary>
@@ -182,7 +219,6 @@ public class GameManager : MonoBehaviour
 
             if (!HasAnyValidMove(opponent))
             {
-                // 双方置けない → ゲームオーバー
                 isGameOver = true;
                 ui.ShowGameOver(board.BlackPoint, board.WhitePoint);
                 return;
@@ -195,69 +231,44 @@ public class GameManager : MonoBehaviour
         ui.UpdateTurnText((int)currentTurn);
         ShowValidMoves();
 
-        // CPU番なら自動で着手する
         if (isCpuMode && currentTurn == cpuSide)
         {
             StartCoroutine(CpuTurn());
         }
     }
 
-    /// <summary>
-    /// 指定プレイヤーが1手以上置けるか確認する
-    /// </summary>
     bool HasAnyValidMove(CellController.CellState player)
     {
         for (int y = 0; y < 8; y++)
-        {
             for (int x = 0; x < 8; x++)
-            {
                 if (board.GetFieldColor(x, y) == 0 && board.HasReversibleDisks(x, y, player))
                     return true;
-            }
-        }
         return false;
     }
 
-    /// <summary>
-    /// 現在のターンの有効手をハイライト表示する
-    /// </summary>
     void ShowValidMoves()
     {
         for (int y = 0; y < 8; y++)
-        {
             for (int x = 0; x < 8; x++)
             {
                 bool isValid = board.GetFieldColor(x, y) == 0
                             && board.HasReversibleDisks(x, y, currentTurn);
                 board.GetCell(x, y).GetComponent<CellController>().SetHighlight(isValid);
             }
-        }
     }
 
-    /// <summary>
-    /// 全セルのハイライトを解除する
-    /// </summary>
     void ClearHighlights()
     {
         for (int y = 0; y < 8; y++)
-        {
             for (int x = 0; x < 8; x++)
-            {
                 board.GetCell(x, y).GetComponent<CellController>().SetHighlight(false);
-            }
-        }
     }
 
-    /// <summary>
-    /// CPUが少し待ってから着手するコルーチン
-    /// </summary>
     IEnumerator CpuTurn()
     {
         yield return new WaitForSeconds(0.5f);
         Vector2Int move = CpuPlayer.GetMove(board, cpuSide, cpuDifficulty);
         if (move.x >= 0)
-        {
             TryPlaceStone(move.x, move.y);
-        }
     }
 }
