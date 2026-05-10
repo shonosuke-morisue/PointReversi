@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// ゲーム全体を統括するクラス。
@@ -20,6 +21,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private bool isCpuMode = false;
     [SerializeField] private CellController.CellState cpuSide = CellController.CellState.White;
 
+    [Header("リザルトウィンドウ")]
+    [SerializeField] private GameObject resultPanel;   // ゲーム終了時に表示するパネル
+    [SerializeField] private UnityEngine.UI.Button titleButton;  // タイトルに戻るボタン
+    [SerializeField] private UnityEngine.UI.Button retryButton;  // リトライボタン
+
     private BoardManager board;
     private UIManager ui;
 
@@ -38,6 +44,11 @@ public class GameManager : MonoBehaviour
 
         board = new BoardManager();
         ui    = new UIManager(canvas);
+
+        // リザルトウィンドウを非表示にしてボタンのリスナーを登録
+        if (resultPanel != null) resultPanel.SetActive(false);
+        if (titleButton != null) titleButton.onClick.AddListener(() => SceneManager.LoadScene("TitleScene"));
+        if (retryButton != null) retryButton.onClick.AddListener(() => SceneManager.LoadScene(gameSceneName));
 
         InitializeBoard();
         PlaceInitialStones();
@@ -228,6 +239,7 @@ public class GameManager : MonoBehaviour
             {
                 isGameOver = true;
                 ui.ShowGameOver(board.BlackPoint, board.WhitePoint);
+                if (resultPanel != null) resultPanel.SetActive(true); // リザルトウィンドウを表示
                 return;
             }
 
