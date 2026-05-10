@@ -22,12 +22,12 @@ public class TitleManager : MonoBehaviour
 
     void Start()
     {
-        // ゲームモード選択肢を設定（index 0: ノーマル, 1: ポイント）
+        // ゲームモード選択肢を設定（index 0: Normal Mode, 1: Point Mode）
         modeDropdown.ClearOptions();
         modeDropdown.AddOptions(new System.Collections.Generic.List<string>
         {
-            "ノーマル",
-            "ポイント"
+            "Normal Mode",
+            "Point Mode"
         });
         modeDropdown.value = 0;
         modeDropdown.RefreshShownValue();
@@ -40,7 +40,7 @@ public class TitleManager : MonoBehaviour
             "Normal",
             "Hard"
         });
-        difficultyDropdown.value = 1; // デフォルト: Normal
+        difficultyDropdown.value = 0; // デフォルト: Easy
         difficultyDropdown.RefreshShownValue();
 
         startButton.onClick.AddListener(OnStartButtonClicked);
