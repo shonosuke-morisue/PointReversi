@@ -1,20 +1,18 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 /// <summary>
 /// タイトルシーンのUI制御を担当するクラス
 /// </summary>
 public class TitleManager : MonoBehaviour
 {
-    [Header("ゲームモードトグル（ToggleGroupに所属させること）")]
-    [SerializeField] private Toggle toggleNormal;  // 「ノーマル」
-    [SerializeField] private Toggle togglePoint;   // 「ポイント」
+    [Header("ゲームモード選択ドロップダウン")]
+    [SerializeField] private TMP_Dropdown modeDropdown;      // 「ノーマル / ポイント」
 
-    [Header("難易度トグル（ToggleGroupに所属させること）")]
-    [SerializeField] private Toggle toggleEasy;    // 「Easy」
-    [SerializeField] private Toggle toggleNormalDiff; // 「Normal」
-    [SerializeField] private Toggle toggleHard;    // 「Hard」
+    [Header("難易度選択ドロップダウン")]
+    [SerializeField] private TMP_Dropdown difficultyDropdown; // 「Easy / Normal / Hard」
 
     [Header("開始ボタン")]
     [SerializeField] private Button startButton;
@@ -24,9 +22,26 @@ public class TitleManager : MonoBehaviour
 
     void Start()
     {
-        // デフォルト選択状態を設定
-        toggleNormal.isOn    = true;
-        toggleNormalDiff.isOn = true;
+        // ゲームモード選択肢を設定（index 0: ノーマル, 1: ポイント）
+        modeDropdown.ClearOptions();
+        modeDropdown.AddOptions(new System.Collections.Generic.List<string>
+        {
+            "ノーマル",
+            "ポイント"
+        });
+        modeDropdown.value = 0;
+        modeDropdown.RefreshShownValue();
+
+        // 難易度選択肢を設定（index 0: Easy, 1: Normal, 2: Hard）
+        difficultyDropdown.ClearOptions();
+        difficultyDropdown.AddOptions(new System.Collections.Generic.List<string>
+        {
+            "Easy",
+            "Normal",
+            "Hard"
+        });
+        difficultyDropdown.value = 1; // デフォルト: Normal
+        difficultyDropdown.RefreshShownValue();
 
         startButton.onClick.AddListener(OnStartButtonClicked);
     }
@@ -36,18 +51,24 @@ public class TitleManager : MonoBehaviour
     /// </summary>
     void OnStartButtonClicked()
     {
-        // ゲームモードを保存
-        GameSettings.SelectedMode = togglePoint.isOn
+        // ゲームモードを保存（0: ノーマル, 1: ポイント）
+        GameSettings.SelectedMode = modeDropdown.value == 1
             ? GameSettings.GameMode.Point
             : GameSettings.GameMode.Normal;
 
-        // 難易度を保存
-        if (toggleEasy.isOn)
-            GameSettings.SelectedDifficulty = CpuPlayer.AIDifficulty.Easy;
-        else if (toggleHard.isOn)
-            GameSettings.SelectedDifficulty = CpuPlayer.AIDifficulty.Hard;
-        else
-            GameSettings.SelectedDifficulty = CpuPlayer.AIDifficulty.Normal;
+        // 難易度を保存（0: Easy, 1: Normal, 2: Hard）
+        switch (difficultyDropdown.value)
+        {
+            case 0:
+                GameSettings.SelectedDifficulty = CpuPlayer.AIDifficulty.Easy;
+                break;
+            case 2:
+                GameSettings.SelectedDifficulty = CpuPlayer.AIDifficulty.Hard;
+                break;
+            default:
+                GameSettings.SelectedDifficulty = CpuPlayer.AIDifficulty.Normal;
+                break;
+        }
 
         SceneManager.LoadScene(gameSceneName);
     }
