@@ -22,9 +22,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private CellController.CellState cpuSide = CellController.CellState.White;
 
     [Header("リザルトウィンドウ")]
-    [SerializeField] private GameObject resultPanel;   // ゲーム終了時に表示するパネル
-    [SerializeField] private UnityEngine.UI.Button titleButton;  // タイトルに戻るボタン
-    [SerializeField] private UnityEngine.UI.Button retryButton;  // リトライボタン
+    [SerializeField] private GameObject resultPanel;                    // ゲーム終了時に表示するパネル
+    [SerializeField] private UnityEngine.UI.Button titleButton;         // タイトルに戻るボタン
+    [SerializeField] private UnityEngine.UI.Button retryButton;         // リトライボタン
+    [SerializeField] private string gameSceneName = "GameScene";        // リトライ時の遷移先シーン名
 
     private BoardManager board;
     private UIManager ui;
