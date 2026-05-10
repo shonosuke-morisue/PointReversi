@@ -23,9 +23,10 @@ public class GameManager : MonoBehaviour
 
     [Header("リザルトウィンドウ")]
     [SerializeField] private GameObject resultPanel;                    // ゲーム終了時に表示するパネル
-    [SerializeField] private UnityEngine.UI.Button titleButton;         // タイトルに戻るボタン
-    [SerializeField] private UnityEngine.UI.Button retryButton;         // リトライボタン
     [SerializeField] private string gameSceneName = "GameScene";        // リトライ時の遷移先シーン名
+
+    [Header("オプションウィンドウ")]
+    [SerializeField] private GameObject optionsPanel;                   // オプションウィンドウ
 
     private BoardManager board;
     private UIManager ui;
@@ -46,10 +47,9 @@ public class GameManager : MonoBehaviour
         board = new BoardManager();
         ui    = new UIManager(canvas);
 
-        // リザルトウィンドウを非表示にしてボタンのリスナーを登録
-        if (resultPanel != null) resultPanel.SetActive(false);
-        if (titleButton != null) titleButton.onClick.AddListener(() => SceneManager.LoadScene("TitleScene"));
-        if (retryButton != null) retryButton.onClick.AddListener(() => SceneManager.LoadScene(gameSceneName));
+        // 各ウィンドウを初期非表示にする
+        if (resultPanel  != null) resultPanel.SetActive(false);
+        if (optionsPanel != null) optionsPanel.SetActive(false);
 
         InitializeBoard();
         PlaceInitialStones();
@@ -92,6 +92,7 @@ public class GameManager : MonoBehaviour
     public void OnCellClicked(int x, int y)
     {
         if (isGameOver) return;
+        if (optionsPanel != null && optionsPanel.activeSelf) return; // オプション表示中は操作不可
         if (isCpuMode && currentTurn == cpuSide) return;
 
         TryPlaceStone(x, y);
@@ -290,5 +291,25 @@ public class GameManager : MonoBehaviour
         Vector2Int move = CpuPlayer.GetMove(board, cpuSide, cpuDifficulty);
         if (move.x >= 0)
             TryPlaceStone(move.x, move.y);
+    }
+
+    // ─── ボタン共通アクション（Inspector の OnClick から割り当て） ───
+
+    /// <summary>タイトルシーンへ遷移する</summary>
+    public void GoToTitle() => SceneManager.LoadScene("TitleScene");
+
+    /// <summary>現在のモード・難易度を保持したままゲームをリセットする</summary>
+    public void RetryGame() => SceneManager.LoadScene(gameSceneName);
+
+    /// <summary>オプションウィンドウを開く</summary>
+    public void OpenOptions()
+    {
+        if (optionsPanel != null) optionsPanel.SetActive(true);
+    }
+
+    /// <summary>オプションウィンドウを閉じる</summary>
+    public void CloseOptions()
+    {
+        if (optionsPanel != null) optionsPanel.SetActive(false);
     }
 }
