@@ -17,9 +17,9 @@ public class GameManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] private GameObject canvas;
 
-    [Header("CPU設定")]
-    [SerializeField] private bool isCpuMode = false;
-    [SerializeField] private CellController.CellState cpuSide = CellController.CellState.White;
+    // CPU は常に後手（白）固定。難易度は GameSettings から読み込む。
+    private const bool isCpuMode = true;
+    private const CellController.CellState cpuSide = CellController.CellState.White;
 
     [Header("リザルトウィンドウ")]
     [SerializeField] private GameObject resultPanel;                    // ゲーム終了時に表示するパネル
